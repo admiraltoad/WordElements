@@ -1,4 +1,5 @@
 import json
+import random
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -6,7 +7,14 @@ from PyQt5.QtGui import *
 
 CompoundNounData = {
     'fire': ['truck', 'ball', 'work'],
-    'work': ['station', 'desk']
+    'work': ['station', 'desk'],
+    'truck': ['stop'],
+    'stop':['sign'],
+    'station': ['waggon'],
+    'waggon': ['wheel'],
+    'wheel': ['barrow', 'well'],
+    'well': ['water'],
+    'water': ['bottle']
 }
 
 class FilterModel(QSortFilterProxyModel):
@@ -31,27 +39,27 @@ class ListModel(QAbstractTableModel):
         return 1
 
     def headerData(self, section, orientation, role):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return self.name
+        pass
+        #if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+        #    return self.name
 
     def data(self, index, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
             return str(self.data[index.row()]).title()
         elif role == Qt.EditRole:
             return str(self.data[index.row()])
+        elif role == Qt.TextAlignmentRole:
+            return Qt.AlignCenter
 
 class ListView(QTableView):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        vh = self.verticalHeader()
-        vh.setSectionResizeMode(QHeaderView.Fixed)
-        vh.hide()
-        hh = self.horizontalHeader()
-        hh.setHighlightSections(False)
-        hh.setSectionsMovable(True)
-        hh.setSectionResizeMode(QHeaderView.Stretch)
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.horizontalHeader().hide()
+        self.verticalHeader().hide()
+        self.setStyleSheet('QTableView { font-weight: bold; font-size: 18pt; }')
 
 class Mainframe(QWidget):   
     def __init__(self):
@@ -62,6 +70,8 @@ class Mainframe(QWidget):
         self.setWindowTitle('Expenses')
         self.resize(800, 200)
         self.show()
+        self.counter = 1
+        self.cached = []
 
     def createFileInputLayout(self):
         label = QLabel('Word Database:')
@@ -90,10 +100,20 @@ class Mainframe(QWidget):
         vbox.addWidget(self.termInput)
         return vbox
 
+    def createTestLayout(self):
+        generate = QPushButton('Generate')
+        generate.clicked.connect(self.generateTestClicked)
+        self.testOutput = QLineEdit()
+        hbox = QHBoxLayout()
+        hbox.addWidget(generate)
+        hbox.addWidget(self.testOutput)
+        return hbox
+
     def initLayout(self):
         vbox = QVBoxLayout()       
         vbox.addLayout(self.createFileInputLayout())
         vbox.addLayout(self.createTermLayout())
+        vbox.addLayout(self.createTestLayout())
         self.setLayout(vbox) 
        
     def center(self):
@@ -102,7 +122,7 @@ class Mainframe(QWidget):
         self.move(geom.topLeft())
 
     def selectDataFile(self):
-        filePath, _ = QFileDialog.getOpenFileName(self, 'Select a WordElement data file', '', 'JSON Files (*.json);;All Files (*)')
+        filePath, _ = QFileDialog.getOpenFileName(self, 'Select a WordElements data file', '', 'JSON Files (*.json);;All Files (*)')
         if filePath:
             try:
                 with open(filePath, 'r') as file:
@@ -145,7 +165,40 @@ class Mainframe(QWidget):
             links = CompoundNounData[term]
             links.sort()
             model = ListModel(links, 'Links')
-        self.links.setModel(model)       
+        self.links.setModel(model)  
+        
+    def generateTestClicked(self):
+        terms = list(CompoundNounData.keys())
+        try:
+            i = random.randint(0, len(terms))
+            first = terms[i]
+            links = CompoundNounData[first]
+            useful = []
+            for link in links:
+                if link in terms:
+                    useful.append(link)
+            i = random.randint(0, len(useful))
+            second = useful[i]
+            links = CompoundNounData[second]
+            useful = []
+            for link in links:
+                if link in terms:
+                    useful.append(link)
+            i = random.randint(0, len(useful))
+            third = useful[i]
+            links = CompoundNounData[third]
+            i = random.randint(0, len(links))
+            fourth = links[i]
+            sequence = '{} > {} > {} > {}'.format(first, second, third, fourth)
+            if sequence in self.cached:
+                raise Exception
+            self.cached.append(sequence)
+            self.testOutput.setText('{}: {}'.format(self.counter, sequence))
+            self.counter = 1
+        except:
+            self.testOutput.setText('{}'.format(self.counter))
+            self.counter += 1
+            QTimer.singleShot(1, self.generateTestClicked)
        
 if __name__ == '__main__':   
     QCoreApplication.setOrganizationName("Expenses")
