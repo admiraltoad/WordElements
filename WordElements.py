@@ -6,15 +6,19 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
 CompoundNounData = {
-    'fire': ['truck', 'ball', 'work'],
-    'work': ['station', 'desk'],
-    'truck': ['stop'],
-    'stop':['sign'],
+    'fire': ['truck', 'ball', 'work', 'station'],
+    'work': ['station', 'desk', 'retreat'],
+    'truck': ['stop', 'bed'],
+    'stop':['sign', 'light'],
     'station': ['waggon'],
     'waggon': ['wheel'],
     'wheel': ['barrow', 'well'],
     'well': ['water'],
-    'water': ['bottle']
+    'water': ['bottle', 'pitcher', 'bed', 'balloon'],
+    'balloon': ['animal'],
+    'bed': ['board', 'post', 'time'],
+    'time': ['warp'],
+    'ball': ['boy']
 }
 
 class FilterModel(QSortFilterProxyModel):
