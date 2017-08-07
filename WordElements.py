@@ -1,25 +1,9 @@
 import json
 import random
-import sys
+import os, sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-
-CompoundNounData = {
-    'fire': ['truck', 'ball', 'work', 'station'],
-    'work': ['station', 'desk', 'retreat'],
-    'truck': ['stop', 'bed'],
-    'stop':['sign', 'light'],
-    'station': ['waggon'],
-    'waggon': ['wheel'],
-    'wheel': ['barrow', 'well'],
-    'well': ['water'],
-    'water': ['bottle', 'pitcher', 'bed', 'balloon'],
-    'balloon': ['animal'],
-    'bed': ['board', 'post', 'time'],
-    'time': ['warp'],
-    'ball': ['boy']
-}
 
 class FilterModel(QSortFilterProxyModel):
     def __init__(self, term):
@@ -60,30 +44,36 @@ class ListView(QTableView):
         self.verticalHeader().hide()
         self.setStyleSheet('QTableView { font-weight: bold; font-size: 18pt; }')
 
-class Mainframe(QWidget):   
+class Mainframe(QWidget):  
+    
+    compoundNounFilePath = None
+    compoundNounData = {}
+
     def __init__(self):
         super().__init__()  
         self.dataFilePath = ''
-        self.initLayout()
+        self.initLayout()        
+        self.setWindowTitle('Word Elements')
+        self.resize(800, 624)
         self.center()
-        self.setWindowTitle('Expenses')
-        self.resize(800, 200)
         self.show()
         self.counter = 1
-        self.cached = []
+        self.cached = []        
+
+        args = QApplication.arguments()
+        self.compoundNounFilePath = os.path.join(os.path.dirname(args[0]), "data.json") 
+        self.loadJSONFile(self.compoundNounFilePath)
+        self.updateTermsModel()
 
     def createFileInputLayout(self):
         label = QLabel('Word Database:')
         self.fileInput = QLineEdit(self.dataFilePath)
         select = QPushButton('Select')
         select.clicked.connect(self.selectDataFile)
-        save = QPushButton('Save')
-        save.clicked.connect(self.saveDataFile)
         hbox = QHBoxLayout()
         hbox.addWidget(label)
         hbox.addWidget(self.fileInput)
         hbox.addWidget(select)
-        hbox.addWidget(save)
         return hbox
 
     def createTermLayout(self):       
@@ -124,18 +114,15 @@ class Mainframe(QWidget):
     def selectDataFile(self):
         filePath, _ = QFileDialog.getOpenFileName(self, 'Select a WordElements data file', '', 'JSON Files (*.json);;All Files (*)')
         if filePath:
-            try:
-                with open(filePath, 'r') as file:
-                    CompoundNounData = json.load(file)
-                    self.dataFilePath = filePath
-                    self.fileInput.setText(self.dataFilePath)
-                    self.updateTermsModel()
-            except:
-                pass           
+            self.loadJSONFile(filePath)
 
-    def saveDataFile(self):
-        with open(self.dataFilePath, 'w') as file:
-            json.dump(CompoundNounData, file)
+    def loadJSONFile(self, filepath): 
+        with open(filepath, 'r') as file:
+            self.compoundNounData = json.load(file)
+            self.dataFilePath = filepath
+            self.fileInput.setText(self.dataFilePath)
+            self.updateTermsModel()
+
 
     def termSelectionChanged(self, selected, deselected):
         indexes = selected.indexes()
@@ -155,14 +142,14 @@ class Mainframe(QWidget):
     def termInputReturnPressed(self):        
         try:
             terms = self.termInput.text().split(' ')
-            if terms[1] not in CompoundNounData[terms[0]]:
-                CompoundNounData[terms[0]].append(terms[1])
+            if terms[1] not in self.compoundNounData[terms[0]]:
+                self.compoundNounData[terms[0]].append(terms[1])
             self.termInput.setText('')
         except:
             pass
 
     def updateTermsModel(self, filterText=None):
-        keys = list(CompoundNounData.keys())
+        keys = list(self.compoundNounData.keys())
         keys.sort()
         model = ListModel(keys, 'Terms')
         if filterText:
@@ -174,8 +161,8 @@ class Mainframe(QWidget):
 
     def updateLinksModel(self, term=None, filterText=None):
         model = None
-        if term in CompoundNounData:
-            links = CompoundNounData[term]
+        if term in self.compoundNounData:
+            links = self.compoundNounData[term]
             links.sort()
             model = ListModel(links, 'Links')
             if filterText:
@@ -185,25 +172,25 @@ class Mainframe(QWidget):
         self.links.setModel(model)  
         
     def generateTestClicked(self):
-        terms = list(CompoundNounData.keys())
+        terms = list(self.compoundNounData.keys())
         try:
             i = random.randint(0, len(terms))
             first = terms[i]
-            links = CompoundNounData[first]
+            links = self.compoundNounData[first]
             useful = []
             for link in links:
                 if link in terms:
                     useful.append(link)
             i = random.randint(0, len(useful))
             second = useful[i]
-            links = CompoundNounData[second]
+            links = self.compoundNounData[second]
             useful = []
             for link in links:
                 if link in terms:
                     useful.append(link)
             i = random.randint(0, len(useful))
             third = useful[i]
-            links = CompoundNounData[third]
+            links = self.compoundNounData[third]
             i = random.randint(0, len(links))
             fourth = links[i]
             sequence = '{} > {} > {} > {}'.format(first, second, third, fourth)
@@ -218,8 +205,8 @@ class Mainframe(QWidget):
             QTimer.singleShot(1, self.generateTestClicked)
        
 if __name__ == '__main__':   
-    QCoreApplication.setOrganizationName("Expenses")
-    QCoreApplication.setApplicationName("Expenses")
+    QCoreApplication.setOrganizationName("Word Elements")
+    QCoreApplication.setApplicationName("Word Elements")
     app = QApplication(sys.argv)
     frame = Mainframe()
     sys.exit(app.exec_())

@@ -1,1 +1,18 @@
-{"fire": ["ball", "truck", "work"], "work": ["desk", "station"]}
+{
+  "dog": [ "collar", "park" ],
+  "ant": [ "farm", "hill" ],
+  "fire": [ "truck", "ball", "work", "station" ],
+  "work": [ "station", "desk", "retreat" ],
+  "truck": [ "stop", "bed" ],
+  "stop": [ "sign", "light" ],
+  "station": [ "waggon" ],
+  "waggon": [ "wheel" ],
+  "wheel": [ "barrow", "well" ],
+  "well": [ "water" ],
+  "water": [ "bottle", "pitcher", "bed", "balloon" ],
+  "balloon": [ "animal" ],
+  "bed": [ "board", "post", "time" ],
+  "time": [ "warp" ],
+  "ball": [ "boy" ],
+  "park": [ "bench" ]
+}
