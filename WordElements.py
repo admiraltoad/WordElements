@@ -38,11 +38,6 @@ class ListModel(QAbstractTableModel):
     def columnCount(self, parent=QModelIndex()):
         return 1
 
-    def headerData(self, section, orientation, role):
-        pass
-        #if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-        #    return self.name
-
     def data(self, index, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
             return str(self.data[index.row()]).title()
@@ -92,6 +87,7 @@ class Mainframe(QWidget):
         self.links = ListView()
         self.termInput = QLineEdit()
         self.termInput.textChanged.connect(self.termInputTextChanged)
+        self.termInput.returnPressed.connect(self.termInputReturnPressed)
         vbox = QVBoxLayout()
         hbox = QHBoxLayout()
         hbox.addWidget(self.terms)
@@ -144,9 +140,22 @@ class Mainframe(QWidget):
         else:
             self.updateLinksModel(indexes[0].data(Qt.EditRole))
 
-    def termInputTextChanged(self, text):
-        firstTerm = text.split(' ')[0]
-        self.updateTermsModel(firstTerm)
+    def termInputTextChanged(self, text):        
+        try:
+            terms = text.split(' ')
+            self.updateTermsModel(terms[0])
+            self.updateLinksModel(terms[0], terms[1])
+        except:
+            pass
+
+    def termInputReturnPressed(self):        
+        try:
+            terms = self.termInput.text().split(' ')
+            if terms[1] not in CompoundNounData[terms[0]]:
+                CompoundNounData[terms[0]].append(terms[1])
+            self.termInput.setText('')
+        except:
+            pass
 
     def updateTermsModel(self, filterText=None):
         keys = list(CompoundNounData.keys())
@@ -159,12 +168,16 @@ class Mainframe(QWidget):
         self.terms.setModel(model)
         self.terms.selectionModel().selectionChanged.connect(self.termSelectionChanged)
 
-    def updateLinksModel(self, term=None):
+    def updateLinksModel(self, term=None, filterText=None):
         model = None
         if term in CompoundNounData:
             links = CompoundNounData[term]
             links.sort()
             model = ListModel(links, 'Links')
+            if filterText:
+                filter = FilterModel(filterText)
+                filter.setSourceModel(model)
+                model = filter
         self.links.setModel(model)  
         
     def generateTestClicked(self):
