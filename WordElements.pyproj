@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>ad74252e-828e-45dd-9c42-b485cb9cb35b</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>WordElements.py</StartupFile>
+    <StartupFile>ui.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -21,7 +21,12 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="WordElements.py" />
+    <Compile Include="terms.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ui.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
