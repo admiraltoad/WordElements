@@ -86,20 +86,28 @@ class Mainframe(QWidget):
         vbox.addWidget(self.termInput)
         return vbox
 
-    def createTestLayout(self):
+    def createGenerateLayout(self):
         generate = QPushButton('Generate')
-        generate.clicked.connect(self.generateTestClicked)
-        self.testOutput = QLineEdit()
+        generate.clicked.connect(self.generateClicked)
+        self.generateOutput = QLineEdit()
+        self.generateSpin = QSpinBox()
+        self.generateSpin.setRange(2, 999);
+        self.generateSpin.setSingleStep(1);
+        self.generateSpin.setValue(4)
+        self.generateUnique = QCheckBox('Unique')
+        self.generateUnique.setChecked(True)
         hbox = QHBoxLayout()
         hbox.addWidget(generate)
-        hbox.addWidget(self.testOutput)
+        hbox.addWidget(self.generateOutput)
+        hbox.addWidget(self.generateSpin)
+        hbox.addWidget(self.generateUnique)
         return hbox
 
     def initLayout(self):
         vbox = QVBoxLayout()       
         vbox.addLayout(self.createFileInputLayout())
         vbox.addLayout(self.createTermLayout())
-        vbox.addLayout(self.createTestLayout())
+        vbox.addLayout(self.createGenerateLayout())
         self.setLayout(vbox) 
        
     def center(self):
@@ -168,12 +176,12 @@ class Mainframe(QWidget):
                 model = filter
             self.links.setModel(model)
         
-    def generateTestClicked(self):
+    def generateClicked(self):
         try:
-            sequence = self.termsManager.sequence(length=4)            
-            self.testOutput.setText(' > '.join(sequence))
+            sequence = self.termsManager.sequence(length=self.generateSpin.value(), skipCached=self.generateUnique.isChecked())            
+            self.generateOutput.setText(' > '.join(sequence))
         except AttemptsExpired:
-            self.testOutput.setText('Attempts to generate sequence expired')
+            self.generateOutput.setText('Attempts to generate sequence expired')
 
     def closeEvent(self, event):
         self.termsManager.save()
